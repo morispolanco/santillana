@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 import json
 import hashlib
 import os
@@ -9,6 +8,7 @@ st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
 
 # Constantes
 USERS_FILE = 'users.json'
+ADMIN_USER = "admin"  # Nombre de usuario del administrador (puedes cambiarlo)
 
 # Cargar usuarios desde el archivo JSON
 def load_users():
@@ -50,8 +50,8 @@ if 'page' not in st.session_state:
 
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
-    # ... (el código de esta función permanece igual)
-    pass  # Elimina este 'pass' y añade el código correspondiente si es necesario
+    # Implementa la lógica de generación de actividades aquí
+    return f"Actividades para {concepto} en {asignatura} para el grado {grado}"
 
 # Página de login
 def login_page():
@@ -66,22 +66,28 @@ def login_page():
                 st.session_state.username = username
                 st.session_state.page = 'main'
     with col2:
-        if st.button("Registrarse"):
+        if username == ADMIN_USER and st.button("Registrarse"):
             st.session_state.page = 'register'
 
-# Página de registro
+# Página de registro (Solo accesible para el administrador)
 def register_page():
-    st.title("Registro de Usuario")
-    new_username = st.text_input("Nuevo Usuario")
-    new_password = st.text_input("Nueva Contraseña", type="password")
-    confirm_password = st.text_input("Confirmar Contraseña", type="password")
-    if st.button("Crear Cuenta"):
-        if new_password != confirm_password:
-            st.error("Las contraseñas no coinciden")
-        elif add_user(new_username, new_password):
-            st.success("Cuenta creada con éxito. Por favor, inicia sesión.")
-            st.session_state.page = 'login'
-    if st.button("Volver al Login"):
+    if st.session_state.username == ADMIN_USER:
+        st.title("Registro de Usuario")
+        new_username = st.text_input("Nuevo Usuario")
+        new_password = st.text_input("Nueva Contraseña", type="password")
+        confirm_password = st.text_input("Confirmar Contraseña", type="password")
+        if st.button("Crear Cuenta"):
+            if new_password != confirm_password:
+                st.error("Las contraseñas no coinciden")
+            elif add_user(new_username, new_password):
+                st.success("Cuenta creada con éxito.")
+                st.session_state.page = 'main'
+            else:
+                st.error("El nombre de usuario ya existe")
+        if st.button("Volver"):
+            st.session_state.page = 'main'
+    else:
+        st.error("Acceso denegado. Solo el administrador puede crear cuentas.")
         st.session_state.page = 'login'
 
 # Página principal
@@ -122,8 +128,9 @@ st.sidebar.info(
 
 # Control de flujo principal
 if st.session_state.authenticated:
-    main_page()
-elif st.session_state.page == 'register':
-    register_page()
+    if st.session_state.page == 'register':
+        register_page()
+    else:
+        main_page()
 else:
     login_page()
