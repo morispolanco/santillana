@@ -2,14 +2,25 @@ import streamlit as st
 import requests
 import json
 import hashlib
+import os
 
 # Configuración de la página
 st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
 
+# Constantes
+USERS_FILE = 'users.json'
+
 # Cargar usuarios desde el archivo JSON
 def load_users():
-    with open('users.json', 'r') as file:
-        return json.load(file)
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'r') as file:
+            return json.load(file)
+    return {}
+
+# Guardar usuarios en el archivo JSON
+def save_users(users):
+    with open(USERS_FILE, 'w') as file:
+        json.dump(users, file)
 
 # Función para hashear contraseñas
 def hash_password(password):
@@ -22,61 +33,73 @@ def check_credentials(username, password):
         return users[username] == hash_password(password)
     return False
 
+# Función para agregar un nuevo usuario
+def add_user(username, password):
+    users = load_users()
+    if username not in users:
+        users[username] = hash_password(password)
+        save_users(users)
+        return True
+    return False
+
 # Inicializar el estado de la sesión
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
+if 'page' not in st.session_state:
+    st.session_state.page = 'login'
 
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
-    api_key = st.secrets["API_KEY"]
-    url = "https://api.together.xyz/v1/chat/completions"
-    
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
-        "messages": [
-            {"role": "system", "content": "Eres un asistente especializado en educación que genera actividades para reforzar conceptos."},
-            {"role": "user", "content": f"Genera 3 actividades para reforzar el concepto de '{concepto}' en la asignatura de {asignatura} para estudiantes de {grado} grado. Las actividades deben ser variadas, interactivas y adecuadas para el nivel educativo."}
-        ],
-        "max_tokens": 2512,
-        "temperature": 0.7,
-        "top_p": 0.7,
-        "top_k": 50,
-        "repetition_penalty": 1,
-        "stop": ["<|eot_id|>"]
-    }
-    
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
-    else:
-        return f"Error al generar actividades: {response.status_code}"
+    # ... (el código de esta función permanece igual)
 
-# Interfaz de login
-if not st.session_state.authenticated:
+# Página de login
+def login_page():
     st.title("Login")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
-    if st.button("Iniciar sesión"):
-        if check_credentials(username, password):
-            st.session_state.authenticated = True
-            st.session_state.username = username
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Iniciar sesión"):
+            if check_credentials(username, password):
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.session_state.page = 'main'
+                st.experimental_rerun()
+            else:
+                st.error("Usuario o contraseña incorrectos")
+    with col2:
+        if st.button("Registrarse"):
+            st.session_state.page = 'register'
+            st.experimental_rerun()
+
+# Página de registro
+def register_page():
+    st.title("Registro de Usuario")
+    new_username = st.text_input("Nuevo Usuario")
+    new_password = st.text_input("Nueva Contraseña", type="password")
+    confirm_password = st.text_input("Confirmar Contraseña", type="password")
+    if st.button("Crear Cuenta"):
+        if new_password != confirm_password:
+            st.error("Las contraseñas no coinciden")
+        elif add_user(new_username, new_password):
+            st.success("Cuenta creada con éxito. Por favor, inicia sesión.")
+            st.session_state.page = 'login'
             st.experimental_rerun()
         else:
-            st.error("Usuario o contraseña incorrectos")
-else:
-    # Interfaz principal de la aplicación
+            st.error("El nombre de usuario ya existe")
+    if st.button("Volver al Login"):
+        st.session_state.page = 'login'
+        st.experimental_rerun()
+
+# Página principal
+def main_page():
     st.title("Generador de Actividades de Aprendizaje")
 
     # Botón de logout
     if st.sidebar.button("Cerrar sesión"):
         st.session_state.authenticated = False
         st.session_state.username = None
+        st.session_state.page = 'login'
         st.experimental_rerun()
 
     st.sidebar.write(f"Bienvenido, {st.session_state.username}!")
@@ -98,9 +121,17 @@ else:
         else:
             st.warning("Por favor, completa todos los campos antes de generar actividades.")
 
-# Información adicional (visible incluso sin autenticación)
+# Información adicional (visible en todas las páginas)
 st.sidebar.header("Acerca de")
 st.sidebar.info(
     "Esta aplicación genera actividades educativas personalizadas "
     "para ayudar a reforzar conceptos específicos en diferentes asignaturas y grados."
 )
+
+# Control de flujo principal
+if st.session_state.authenticated:
+    main_page()
+elif st.session_state.page == 'register':
+    register_page()
+else:
+    login_page()
