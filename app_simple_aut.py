@@ -49,8 +49,8 @@ if 'page' not in st.session_state:
     st.session_state.page = 'login'
 
 # Función para generar actividades
-def generar_actividades(concepto, asignatura, grado):
-    # ... (el código de esta función permanece igual)
+    def generar_actividades(concepto, asignatura, grado):
+        # ... (el código de esta función permanece igual)
 
 # Página de login
 def login_page():
