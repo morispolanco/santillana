@@ -8,30 +8,17 @@ st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
 # Título de la aplicación
 st.title("Generador de Actividades de Aprendizaje")
 
-# Formulario para ingresar los datos
-with st.form("input_form"):
-    concepto = st.text_input("Concepto a reforzar:")
-    asignatura = st.text_input("Asignatura:")
-    grado = st.text_input("Grado:")
-    submit_button = st.form_submit_button("Generar Actividades")
-
-# Función para generar actividades
-def generar_actividades(concepto, asignatura, grado):
-    api_key = st.secrets["API_KEY"]
+# Función para llamar a la API
+def llamar_api(prompt):
     url = "https://api.together.xyz/v1/chat/completions"
-    
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {st.secrets['API_KEY']}",
         "Content-Type": "application/json"
     }
-    
     data = {
         "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
-        "messages": [
-            {"role": "system", "content": "Eres un asistente especializado en educación que genera actividades para reforzar conceptos."},
-            {"role": "user", "content": f"Genera 5 actividades para reforzar el concepto de '{concepto}' en la asignatura de {asignatura} para estudiantes de {grado} grado. Las actividades deben ser variadas, interactivas y adecuadas para el nivel educativo."}
-        ],
-        "max_tokens": 1512,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 2512,
         "temperature": 0.7,
         "top_p": 0.7,
         "top_k": 50,
@@ -40,25 +27,48 @@ def generar_actividades(concepto, asignatura, grado):
     }
     
     response = requests.post(url, headers=headers, json=data)
-    
     if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
+        return response.json()['choices'][0]['message']['content']
     else:
-        return f"Error al generar actividades: {response.status_code}"
+        return f"Error: {response.status_code}, {response.text}"
 
-# Generar y mostrar actividades cuando se presiona el botón
-if submit_button:
+# Formulario para ingresar los datos
+with st.form("datos_actividad"):
+    concepto = st.text_input("Concepto a reforzar")
+    asignatura = st.text_input("Asignatura")
+    grado = st.text_input("Grado o nivel educativo")
+    
+    submitted = st.form_submit_button("Generar Actividad")
+
+# Generación de la actividad
+if submitted:
     if concepto and asignatura and grado:
-        with st.spinner("Generando actividades..."):
-            actividades = generar_actividades(concepto, asignatura, grado)
-            st.subheader("Actividades Generadas:")
-            st.write(actividades)
+        with st.spinner("Generando actividad..."):
+            prompt = f"""
+            Genera una actividad educativa para reforzar el siguiente concepto:
+            
+            Concepto: {concepto}
+            Asignatura: {asignatura}
+            Grado o nivel: {grado}
+            
+            La actividad debe ser interactiva, adecuada para el nivel educativo especificado, y diseñada para asegurar la correcta fijación del concepto. 
+            Incluye una breve descripción de la actividad, los objetivos de aprendizaje, los materiales necesarios (si los hay), y los pasos detallados para realizarla.
+            """
+            
+            resultado = llamar_api(prompt)
+            st.subheader("Actividad Generada")
+            st.write(resultado)
     else:
-        st.warning("Por favor, completa todos los campos antes de generar actividades.")
+        st.warning("Por favor, completa todos los campos antes de generar la actividad.")
 
-# Información adicional
-st.sidebar.header("Acerca de")
-st.sidebar.info(
-    "Esta aplicación genera actividades educativas personalizadas "
-    "para ayudar a reforzar conceptos específicos en diferentes asignaturas y grados."
-)
+# Instrucciones de uso
+st.sidebar.header("Instrucciones")
+st.sidebar.write("""
+1. Ingresa el concepto que deseas reforzar.
+2. Especifica la asignatura a la que pertenece el concepto.
+3. Indica el grado o nivel educativo de los estudiantes.
+4. Haz clic en "Generar Actividad" para obtener una actividad personalizada.
+""")
+
+# Nota sobre la API
+st.sidebar.info("Esta aplicación utiliza la API de Together.xyz para generar actividades educativas personalizadas.")
