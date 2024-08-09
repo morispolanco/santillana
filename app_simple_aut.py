@@ -51,26 +51,27 @@ if 'page' not in st.session_state:
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
     # ... (el código de esta función permanece igual)
+    pass  # Elimina este 'pass' y añade el código correspondiente si es necesario
 
 # Página de login
-    def login_page():
-        st.title("Login")
-        username = st.text_input("Usuario")
-        password = st.text_input("Contraseña", type="password")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Iniciar sesión"):
-                if check_credentials(username, password):
-                    st.session_state.authenticated = True
-                    st.session_state.username = username
-                    st.session_state.page = 'main'
-                    st.experimental_rerun()
-                else:
-                    st.error("Usuario o contraseña incorrectos")
-        with col2:
-            if st.button("Registrarse"):
-                st.session_state.page = 'register'
+def login_page():
+    st.title("Login")
+    username = st.text_input("Usuario")
+    password = st.text_input("Contraseña", type="password")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Iniciar sesión"):
+            if check_credentials(username, password):
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.session_state.page = 'main'
                 st.experimental_rerun()
+            else:
+                st.error("Usuario o contraseña incorrectos")
+    with col2:
+        if st.button("Registrarse"):
+            st.session_state.page = 'register'
+            st.experimental_rerun()
 
 # Página de registro
 def register_page():
