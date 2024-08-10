@@ -42,7 +42,7 @@ def hash_password(password):
 def initialize_admin():
     users = load_users()
     if ADMIN_USER not in users:
-        users[ADMIN_USER] = hash_password(MITA)  # Establece la contraseña predeterminada
+        users[ADMIN_USER] = hash_password(ADMIN_PASSWORD)  # Establece la contraseña predeterminada
         save_users(users)
 
 # Llamar a la función de inicialización al inicio
