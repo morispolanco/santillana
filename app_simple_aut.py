@@ -30,7 +30,7 @@ def hash_password(password):
 def initialize_admin():
     users = load_users()
     if ADMIN_USER not in users:
-        users[ADMIN_USER] = hash_password("admin12345")  # Establece la contraseña predeterminada
+        users[ADMIN_USER] = hash_password("admin123")  # Establece la contraseña predeterminada
         save_users(users)
 
 # Llamar a la función de inicialización al inicio
@@ -69,36 +69,39 @@ def login_page():
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Iniciar sesión"):
-            if check_credentials(username, password):
-                st.session_state.authenticated = True
-                st.session_state.username = username
+    if st.button("Iniciar sesión"):
+        if check_credentials(username, password):
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            if username == ADMIN_USER:
+                st.session_state.page = 'main'  # Cambiar a la página principal
+            else:
                 st.session_state.page = 'main'
-    with col2:
-        if username == ADMIN_USER and st.button("Registrarse"):
+            st.experimental_rerun()
+
+    if st.session_state.username == ADMIN_USER:
+        if st.button("Registrarse"):
             st.session_state.page = 'register'
+            st.experimental_rerun()
 
 # Página de registro (Solo accesible para el administrador)
 def register_page():
-    if st.session_state.username == ADMIN_USER:
-        st.title("Registro de Usuario")
-        new_username = st.text_input("Nuevo Usuario")
-        new_password = st.text_input("Nueva Contraseña", type="password")
-        confirm_password = st.text_input("Confirmar Contraseña", type="password")
-        if st.button("Crear Cuenta"):
-            if new_password != confirm_password:
-                st.error("Las contraseñas no coinciden")
-            elif add_user(new_username, new_password):
-                st.success("Cuenta creada con éxito.")
-                st.session_state.page = 'main'
-            else:
-                st.error("El nombre de usuario ya existe")
-        if st.button("Volver"):
+    st.title("Registro de Usuario")
+    new_username = st.text_input("Nuevo Usuario")
+    new_password = st.text_input("Nueva Contraseña", type="password")
+    confirm_password = st.text_input("Confirmar Contraseña", type="password")
+    if st.button("Crear Cuenta"):
+        if new_password != confirm_password:
+            st.error("Las contraseñas no coinciden")
+        elif add_user(new_username, new_password):
+            st.success("Cuenta creada con éxito.")
             st.session_state.page = 'main'
-    else:
-        st.error("Acceso denegado. Solo el administrador puede crear cuentas.")
-        st.session_state.page = 'login'
+            st.experimental_rerun()
+        else:
+            st.error("El nombre de usuario ya existe")
+    if st.button("Volver"):
+        st.session_state.page = 'main'
+        st.experimental_rerun()
 
 # Página principal
 def main_page():
@@ -109,6 +112,7 @@ def main_page():
         st.session_state.authenticated = False
         st.session_state.username = None
         st.session_state.page = 'login'
+        st.experimental_rerun()
 
     st.sidebar.write(f"Bienvenido, {st.session_state.username}!")
 
