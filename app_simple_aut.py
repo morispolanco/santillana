@@ -3,6 +3,7 @@ import json
 import hashlib
 import os
 import logging
+import secrets
 
 # Configuración de la página
 st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
@@ -36,7 +37,9 @@ def save_users(users):
 
 # Función para hashear contraseñas
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+    salt = secrets.token_hex(16)
+    hashed_password = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+    return salt + hashed_password.hex()
 
 # Inicializar el administrador si no existe
 def initialize_admin():
@@ -54,11 +57,15 @@ def check_credentials(username, password):
         return False
     users = load_users()
     if username in users:
-        hashed_password = hash_password(password)
-        print(f"Contraseña ingresada: {password}")
-        print(f"Contraseña almacenada: {users[username]}")
-        print(f"Contraseña hasheada: {hashed_password}")
-        return users[username] == hashed_password
+        hashed_password = users[username]
+        salt = hashed_password[:32]
+        hashed_password = hashed_password[32:]
+        new_hashed_password = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        if hashed_password == new_hashed_password.hex():
+            print("Contraseña correcta")
+        else:
+            print("Contraseña incorrecta")
+        return hashed_password == new_hashed_password.hex()
     return False
 
 # Función para agregar un nuevo usuario
