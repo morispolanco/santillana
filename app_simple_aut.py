@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import hashlib
 import os
+import logging
 
 # Configuración de la página
 st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
@@ -9,18 +10,29 @@ st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
 # Constantes
 USERS_FILE = 'users.json'
 ADMIN_USER = "admin"  # Nombre de usuario del administrador
+ADMIN_PASSWORD = "admin123"  # Contraseña predeterminada del administrador
+
+# Configuración de logging
+logging.basicConfig(level=logging.INFO)
 
 # Cargar usuarios desde el archivo JSON
 def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, 'r') as file:
-            return json.load(file)
-    return {}
+    try:
+        if os.path.exists(USERS_FILE):
+            with open(USERS_FILE, 'r') as file:
+                return json.load(file)
+        return {}
+    except Exception as e:
+        logging.error(f"Error al cargar usuarios: {e}")
+        return {}
 
 # Guardar usuarios en el archivo JSON
 def save_users(users):
-    with open(USERS_FILE, 'w') as file:
-        json.dump(users, file)
+    try:
+        with open(USERS_FILE, 'w') as file:
+            json.dump(users, file)
+    except Exception as e:
+        logging.error(f"Error al guardar usuarios: {e}")
 
 # Función para hashear contraseñas
 def hash_password(password):
@@ -30,7 +42,7 @@ def hash_password(password):
 def initialize_admin():
     users = load_users()
     if ADMIN_USER not in users:
-        users[ADMIN_USER] = hash_password("admin123")  # Establece la contraseña predeterminada
+        users[ADMIN_USER] = hash_password(ADMIN_PASSWORD)  # Establece la contraseña predeterminada
         save_users(users)
 
 # Llamar a la función de inicialización al inicio
@@ -38,6 +50,8 @@ initialize_admin()
 
 # Función para verificar las credenciales
 def check_credentials(username, password):
+    if not username or not password:
+        return False
     users = load_users()
     if username in users:
         return users[username] == hash_password(password)
