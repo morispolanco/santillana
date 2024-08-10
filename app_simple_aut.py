@@ -70,18 +70,20 @@ def login_page():
     st.title("Login")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
-    col1, col2 = st.columns(2)
+    
     if st.button("Iniciar sesión"):
         if check_credentials(username, password):
             st.session_state.authenticated = True
             st.session_state.username = username
-            st.session_state.page = 'main'
+            
+            if username == ADMIN_USER:
+                st.session_state.page = 'register'
+            else:
+                st.session_state.page = 'main'
+                
             st.experimental_rerun()
-
-    if st.session_state.username == ADMIN_USER:
-        if st.button("Registrarse"):
-            st.session_state.page = 'register'
-            st.experimental_rerun()
+        else:
+            st.error("Usuario o contraseña incorrectos")
 
 # Página de registro (Solo accesible para el administrador)
 def register_page():
@@ -89,6 +91,7 @@ def register_page():
     new_username = st.text_input("Nuevo Usuario")
     new_password = st.text_input("Nueva Contraseña", type="password")
     confirm_password = st.text_input("Confirmar Contraseña", type="password")
+    
     if st.button("Crear Cuenta"):
         if new_password != confirm_password:
             st.error("Las contraseñas no coinciden")
@@ -98,6 +101,7 @@ def register_page():
             st.experimental_rerun()
         else:
             st.error("El nombre de usuario ya existe")
+    
     if st.button("Volver"):
         st.session_state.page = 'main'
         st.experimental_rerun()
