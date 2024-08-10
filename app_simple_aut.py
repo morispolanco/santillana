@@ -54,7 +54,11 @@ def check_credentials(username, password):
         return False
     users = load_users()
     if username in users:
-        return users[username] == hash_password(password)
+        hashed_password = hash_password(password)
+        print(f"Contraseña ingresada: {password}")
+        print(f"Contraseña almacenada: {users[username]}")
+        print(f"Contraseña hasheada: {hashed_password}")
+        return users[username] == hashed_password
     return False
 
 # Función para agregar un nuevo usuario
