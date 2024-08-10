@@ -45,7 +45,8 @@ def hash_password(password):
 def initialize_admin():
     users = load_users()
     if ADMIN_USER not in users:
-        users[ADMIN_USER] = hash_password(ADMIN_PASSWORD)  # Establece la contraseña predeterminada
+        hashed_password = hash_password(ADMIN_PASSWORD)
+        users[ADMIN_USER] = hashed_password
         save_users(users)
 
 # Llamar a la función de inicialización al inicio
