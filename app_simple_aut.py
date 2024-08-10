@@ -50,14 +50,13 @@ if 'page' not in st.session_state:
 
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
-    # Agrega aquí el código para generar actividades
-    pass
+    # ... (el código de esta función permanece igual)
 
 # Página de login
 def login_page():
     st.title("Login")
-    username = st.text_input("Usuario", max_chars=20)
-    password = st.text_input("Contraseña", type="password", max_chars=20)
+    username = st.text_input("Usuario")
+    password = st.text_input("Contraseña", type="password")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Iniciar sesión"):
@@ -65,36 +64,32 @@ def login_page():
                 st.session_state.authenticated = True
                 st.session_state.username = username
                 st.session_state.page = 'main'
-                st.write("Iniciando sesión...")
-                main_page()
+                st.experimental_rerun()
             else:
                 st.error("Usuario o contraseña incorrectos")
     with col2:
         if st.button("Registrarse"):
             st.session_state.page = 'register'
-            st.write("Registrando...")
-            register_page()
+            st.experimental_rerun()
 
 # Página de registro
 def register_page():
     st.title("Registro de Usuario")
-    new_username = st.text_input("Nuevo Usuario", max_chars=20)
-    new_password = st.text_input("Nueva Contraseña", type="password", max_chars=20)
-    confirm_password = st.text_input("Confirmar Contraseña", type="password", max_chars=20)
+    new_username = st.text_input("Nuevo Usuario")
+    new_password = st.text_input("Nueva Contraseña", type="password")
+    confirm_password = st.text_input("Confirmar Contraseña", type="password")
     if st.button("Crear Cuenta"):
         if new_password != confirm_password:
             st.error("Las contraseñas no coinciden")
         elif add_user(new_username, new_password):
             st.success("Cuenta creada con éxito. Por favor, inicia sesión.")
             st.session_state.page = 'login'
-            st.write("Iniciando sesión...")
-            login_page()
+            st.experimental_rerun()
         else:
             st.error("El nombre de usuario ya existe")
     if st.button("Volver al Login"):
         st.session_state.page = 'login'
-        st.write("Volviendo al login...")
-        login_page()
+        st.experimental_rerun()
 
 # Página principal
 def main_page():
@@ -105,8 +100,7 @@ def main_page():
         st.session_state.authenticated = False
         st.session_state.username = None
         st.session_state.page = 'login'
-        st.write("Cerrando sesión...")
-        login_page()
+        st.experimental_rerun()
 
     st.sidebar.write(f"Bienvenido, {st.session_state.username}!")
 
