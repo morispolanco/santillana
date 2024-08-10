@@ -57,6 +57,8 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'page' not in st.session_state:
     st.session_state.page = 'login'
+if 'username' not in st.session_state:
+    st.session_state.username = None
 
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
@@ -73,10 +75,7 @@ def login_page():
         if check_credentials(username, password):
             st.session_state.authenticated = True
             st.session_state.username = username
-            if username == ADMIN_USER:
-                st.session_state.page = 'main'  # Cambiar a la página principal
-            else:
-                st.session_state.page = 'main'
+            st.session_state.page = 'main'
             st.experimental_rerun()
 
     if st.session_state.username == ADMIN_USER:
