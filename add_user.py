@@ -1,17 +1,22 @@
+import streamlit as st
 import json
 import hashlib
 import os
 
+# Configuración de la página
+st.set_page_config(page_title="Administrador de Usuarios", page_icon="🔑")
+
+# Constantes
 USERS_FILE = 'users.json'
 
-# Función para cargar usuarios
+# Cargar usuarios desde el archivo JSON
 def load_users():
     if os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'r') as file:
             return json.load(file)
     return {}
 
-# Función para guardar usuarios
+# Guardar usuarios en el archivo JSON
 def save_users(users):
     with open(USERS_FILE, 'w') as file:
         json.dump(users, file)
@@ -26,12 +31,24 @@ def add_user(username, password):
     if username not in users:
         users[username] = hash_password(password)
         save_users(users)
-        print(f"Usuario {username} agregado exitosamente.")
-    else:
-        print(f"El usuario {username} ya existe.")
+        return True
+    return False
 
-# Solicitar al administrador que ingrese el nombre de usuario y la contraseña
-if __name__ == "__main__":
-    username = input("Ingrese el nombre de usuario: ")
-    password = input("Ingrese la contraseña: ")
-    add_user(username, password)
+# Página de administración de usuarios
+def admin_page():
+    st.title("Administrador de Usuarios")
+
+    new_username = st.text_input("Nuevo Usuario")
+    new_password = st.text_input("Nueva Contraseña", type="password")
+    confirm_password = st.text_input("Confirmar Contraseña", type="password")
+
+    if st.button("Agregar Usuario"):
+        if new_password != confirm_password:
+            st.error("Las contraseñas no coinciden.")
+        elif add_user(new_username, new_password):
+            st.success(f"Usuario '{new_username}' agregado exitosamente.")
+        else:
+            st.error(f"El usuario '{new_username}' ya existe.")
+
+# Mostrar la página de administración
+admin_page()
