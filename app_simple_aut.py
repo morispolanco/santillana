@@ -50,7 +50,8 @@ if 'page' not in st.session_state:
 
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
-    # ... (el código de esta función permanece igual)
+    # Agrega aquí el código para generar actividades
+    pass
 
 # Página de login
 def login_page():
@@ -135,4 +136,3 @@ elif st.session_state.page == 'register':
     register_page()
 else:
     login_page()
- 
