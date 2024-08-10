@@ -55,8 +55,8 @@ def generar_actividades(concepto, asignatura, grado):
 # Página de login
 def login_page():
     st.title("Login")
-    username = st.text_input("Usuario")
-    password = st.text_input("Contraseña", type="password")
+    username = st.text_input("Usuario", max_chars=20)
+    password = st.text_input("Contraseña", type="password", max_chars=20)
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Iniciar sesión"):
@@ -75,9 +75,9 @@ def login_page():
 # Página de registro
 def register_page():
     st.title("Registro de Usuario")
-    new_username = st.text_input("Nuevo Usuario")
-    new_password = st.text_input("Nueva Contraseña", type="password")
-    confirm_password = st.text_input("Confirmar Contraseña", type="password")
+    new_username = st.text_input("Nuevo Usuario", max_chars=20)
+    new_password = st.text_input("Nueva Contraseña", type="password", max_chars=20)
+    confirm_password = st.text_input("Confirmar Contraseña", type="password", max_chars=20)
     if st.button("Crear Cuenta"):
         if new_password != confirm_password:
             st.error("Las contraseñas no coinciden")
