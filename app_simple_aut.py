@@ -43,7 +43,7 @@ if username == "admin" and password == "password":  # Reemplaza con tus credenci
 
 # Función para generar actividades
 def generar_actividades(concepto, asignatura, grado):
-    api_key = st.secrets["API_KEY"] 
+    api_key = st.secrets["API_KEY"]
     url = "https://api.together.xyz/v1/chat/completions"
     
     headers = {
