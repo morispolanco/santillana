@@ -57,23 +57,27 @@ def admin_page():
             st.error("Las contraseñas no coinciden.")
         elif add_user(new_username, new_password):
             st.success(f"Usuario {new_username} agregado exitosamente.")
+            st.rerun()  # Recargar la página para mostrar el nuevo usuario
         else:
             st.error("El usuario ya existe.")
     
     # Sección para listar y eliminar usuarios
     st.header("Usuarios Existentes")
     users = load_users()
-    for username in users.keys():
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.write(username)
-        with col2:
-            if st.button("Eliminar", key=f"delete_{username}"):
-                if delete_user(username):
-                    st.success(f"Usuario {username} eliminado exitosamente.")
-                    st.rerun()
-                else:
-                    st.error(f"Error al eliminar el usuario {username}.")
+    if not users:
+        st.write("No hay usuarios registrados.")
+    else:
+        for username in users.keys():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(username)
+            with col2:
+                if st.button("Eliminar", key=f"delete_{username}"):
+                    if delete_user(username):
+                        st.success(f"Usuario {username} eliminado exitosamente.")
+                        st.rerun()  # Recargar la página para actualizar la lista de usuarios
+                    else:
+                        st.error(f"Error al eliminar el usuario {username}.")
     
     # Botón para cerrar sesión
     if st.button("Cerrar sesión"):
