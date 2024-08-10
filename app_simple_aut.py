@@ -8,7 +8,7 @@ st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
 
 # Constantes
 USERS_FILE = 'users.json'
-ADMIN_USER = "admin"  # Nombre de usuario del administrador (puedes cambiarlo)
+ADMIN_USER = "admin"  # Nombre de usuario del administrador
 
 # Cargar usuarios desde el archivo JSON
 def load_users():
@@ -25,6 +25,16 @@ def save_users(users):
 # Función para hashear contraseñas
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
+# Inicializar el administrador si no existe
+def initialize_admin():
+    users = load_users()
+    if ADMIN_USER not in users:
+        users[ADMIN_USER] = hash_password("admin123")  # Establece la contraseña predeterminada
+        save_users(users)
+
+# Llamar a la función de inicialización al inicio
+initialize_admin()
 
 # Función para verificar las credenciales
 def check_credentials(username, password):
