@@ -33,56 +33,28 @@ def check_credentials(username, password):
         return users[username] == hash_password(password)
     return False
 
-# Función para agregar un nuevo usuario
-def add_user(username, password):
-    users = load_users()
-    if username not in users:
-        users[username] = hash_password(password)
-        save_users(users)
-        return True
-    return False
-
 # Inicializar el estado de la sesión
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'page' not in st.session_state:
     st.session_state.page = 'login'
 
-# Función para generar actividades
+# Función para generar actividades (debes implementar esta función)
 def generar_actividades(concepto, asignatura, grado):
-    # ... (el código de esta función permanece igual)
-    pass  # Elimina este 'pass' y añade el código correspondiente si es necesario
+    pass  # Elimina este 'pass' y añade el código correspondiente
 
 # Página de login
 def login_page():
     st.title("Login")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Iniciar sesión"):
-            if check_credentials(username, password):
-                st.session_state.authenticated = True
-                st.session_state.username = username
-                st.session_state.page = 'main'
-    with col2:
-        if st.button("Registrarse"):
-            st.session_state.page = 'register'
-
-# Página de registro
-def register_page():
-    st.title("Registro de Usuario")
-    new_username = st.text_input("Nuevo Usuario")
-    new_password = st.text_input("Nueva Contraseña", type="password")
-    confirm_password = st.text_input("Confirmar Contraseña", type="password")
-    if st.button("Crear Cuenta"):
-        if new_password != confirm_password:
-            st.error("Las contraseñas no coinciden")
-        elif add_user(new_username, new_password):
-            st.success("Cuenta creada con éxito. Por favor, inicia sesión.")
-            st.session_state.page = 'login'
-    if st.button("Volver al Login"):
-        st.session_state.page = 'login'
+    if st.button("Iniciar sesión"):
+        if check_credentials(username, password):
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.session_state.page = 'main'
+        else:
+            st.error("Usuario o contraseña incorrectos.")
 
 # Página principal
 def main_page():
@@ -123,7 +95,5 @@ st.sidebar.info(
 # Control de flujo principal
 if st.session_state.authenticated:
     main_page()
-elif st.session_state.page == 'register':
-    register_page()
 else:
     login_page()
