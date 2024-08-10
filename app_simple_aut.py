@@ -65,13 +65,15 @@ def login_page():
                 st.session_state.authenticated = True
                 st.session_state.username = username
                 st.session_state.page = 'main'
-                st.experimental_rerun()
+                st.write("Iniciando sesión...")
+                main_page()
             else:
                 st.error("Usuario o contraseña incorrectos")
     with col2:
         if st.button("Registrarse"):
             st.session_state.page = 'register'
-            st.experimental_rerun()
+            st.write("Registrando...")
+            register_page()
 
 # Página de registro
 def register_page():
@@ -85,12 +87,14 @@ def register_page():
         elif add_user(new_username, new_password):
             st.success("Cuenta creada con éxito. Por favor, inicia sesión.")
             st.session_state.page = 'login'
-            st.experimental_rerun()
+            st.write("Iniciando sesión...")
+            login_page()
         else:
             st.error("El nombre de usuario ya existe")
     if st.button("Volver al Login"):
         st.session_state.page = 'login'
-        st.experimental_rerun()
+        st.write("Volviendo al login...")
+        login_page()
 
 # Página principal
 def main_page():
@@ -101,7 +105,8 @@ def main_page():
         st.session_state.authenticated = False
         st.session_state.username = None
         st.session_state.page = 'login'
-        st.experimental_rerun()
+        st.write("Cerrando sesión...")
+        login_page()
 
     st.sidebar.write(f"Bienvenido, {st.session_state.username}!")
 
