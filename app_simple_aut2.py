@@ -1,39 +1,35 @@
 import streamlit as st
-import requests
-import json
-
-# Configuración de la página
-st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
 
 # Página de administración
 if st.button("Ir a la página de administración"):
     st.title("Página de administración")
-    st.write("Aquí puedes agregar nuevos usuarios")
-    username = st.text_input("Usuario:")
-    password = st.text_input("Contraseña:", type="password")
-    submit_button = st.form_submit_button("Agregar usuario")
+    with st.form("admin_form"):
+        username = st.text_input("Usuario:")
+        password = st.text_input("Contraseña:", type="password")
+        submit_button = st.form_submit_button("Agregar usuario")
 
-    if submit_button:
-        # Agregar usuario a la base de datos
-        # (en este caso, solo se muestra un mensaje de confirmación)
-        st.write("Usuario agregado con éxito")
+        if submit_button:
+            # Agregar usuario a la base de datos
+            # (en este caso, solo se muestra un mensaje de confirmación)
+            st.write("Usuario agregado con éxito")
 
 # Página de login
 if st.button("Ir a la página de login"):
     st.title("Página de login")
-    username = st.text_input("Usuario:")
-    password = st.text_input("Contraseña:", type="password")
-    submit_button = st.form_submit_button("Iniciar sesión")
+    with st.form("login_form"):
+        username = st.text_input("Usuario:")
+        password = st.text_input("Contraseña:", type="password")
+        submit_button = st.form_submit_button("Iniciar sesión")
 
-    if submit_button:
-        # Verificar la autenticación
-        if username == "admin" and password == "password":  # Reemplaza con tus credenciales
-            # Si la autenticación es correcta, muestra el contenido protegido
-            st.write("Bienvenido!")
-            # Aquí puedes agregar el código para generar actividades
-        else:
-            # Si la autenticación es incorrecta, muestra un mensaje de error
-            st.error("Contraseña o usuario incorrecto")
+        if submit_button:
+            # Verificar la autenticación
+            if username == "admin" and password == "password":  # Reemplaza con tus credenciales
+                # Si la autenticación es correcta, muestra el contenido protegido
+                st.write("Bienvenido!")
+                # Aquí puedes agregar el código para generar actividades
+            else:
+                # Si la autenticación es incorrecta, muestra un mensaje de error
+                st.error("Contraseña o usuario incorrecto")
 
 # Código para generar actividades
 def generar_actividades(concepto, asignatura, grado):
@@ -68,19 +64,20 @@ def generar_actividades(concepto, asignatura, grado):
 
 # Generar y mostrar actividades cuando se presiona el botón
 if st.button("Generar actividades"):
-    concepto = st.text_input("Concepto a reforzar:")
-    asignatura = st.text_input("Asignatura:")
-    grado = st.text_input("Grado:")
-    submit_button = st.form_submit_button("Generar Actividades")
+    with st.form("actividades_form"):
+        concepto = st.text_input("Concepto a reforzar:")
+        asignatura = st.text_input("Asignatura:")
+        grado = st.text_input("Grado:")
+        submit_button = st.form_submit_button("Generar Actividades")
 
-    if submit_button:
-        if concepto and asignatura and grado:
-            with st.spinner("Generando actividades..."):
-                actividades = generar_actividades(concepto, asignatura, grado)
-                st.subheader("Actividades Generadas:")
-                st.write(actividades)
-        else:
-            st.warning("Por favor, completa todos los campos antes de generar actividades.")
+        if submit_button:
+            if concepto and asignatura and grado:
+                with st.spinner("Generando actividades..."):
+                    actividades = generar_actividades(concepto, asignatura, grado)
+                    st.subheader("Actividades Generadas:")
+                    st.write(actividades)
+            else:
+                st.warning("Por favor, completa todos los campos antes de generar actividades.")
 
 # Información adicional
 st.sidebar.header("Acerca de")
