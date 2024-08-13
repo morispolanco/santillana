@@ -1,87 +1,131 @@
 import streamlit as st
+import requests
+import json
+import hashlib
 
-# Página de administración
-if st.button("Ir a la página de administración"):
-    st.title("Página de administración")
-    with st.form("admin_form"):
-        username = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="password")
-        submit_button = st.form_submit_button("Agregar usuario")
+# Initialize session state
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+if 'users' not in st.session_state:
+    st.session_state.users = {'admin': hashlib.sha256('password'.encode()).hexdigest()}
+if 'current_user' not in st.session_state:
+    st.session_state.current_user = None
 
-        if submit_button:
-            # Agregar usuario a la base de datos
-            # (en este caso, solo se muestra un mensaje de confirmación)
-            st.write("Usuario agregado con éxito")
+# Function to hash passwords
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-# Página de login
-if st.button("Ir a la página de login"):
-    st.title("Página de login")
-    with st.form("login_form"):
-        username = st.text_input("Usuario:")
-        password = st.text_input("Contraseña:", type="password")
-        submit_button = st.form_submit_button("Iniciar sesión")
+# Login function
+def login(username, password):
+    if username in st.session_state.users and st.session_state.users[username] == hash_password(password):
+        st.session_state.logged_in = True
+        st.session_state.current_user = username
+        return True
+    return False
 
-        if submit_button:
-            # Verificar la autenticación
-            if username == "admin" and password == "password":  # Reemplaza con tus credenciales
-                # Si la autenticación es correcta, muestra el contenido protegido
-                st.write("Bienvenido!")
-                # Aquí puedes agregar el código para generar actividades
-            else:
-                # Si la autenticación es incorrecta, muestra un mensaje de error
-                st.error("Contraseña o usuario incorrecto")
+# Logout function
+def logout():
+    st.session_state.logged_in = False
+    st.session_state.current_user = None
 
-# Código para generar actividades
-def generar_actividades(concepto, asignatura, grado):
-    api_key = st.secrets["API_KEY"]
-    url = "https://api.together.xyz/v1/chat/completions"
+# Function to add new user (admin only)
+def add_user(username, password):
+    if username not in st.session_state.users:
+        st.session_state.users[username] = hash_password(password)
+        return True
+    return False
+
+# Configuración de la página
+st.set_page_config(page_title="Generador de Actividades", page_icon="📚")
+
+# Login/Logout UI
+if not st.session_state.logged_in:
+    st.title("Inicio de Sesión")
+    username = st.text_input("Usuario")
+    password = st.text_input("Contraseña", type="password")
+    if st.button("Iniciar Sesión"):
+        if login(username, password):
+            st.success("Inicio de sesión exitoso!")
+        else:
+            st.error("Usuario o contraseña incorrectos")
+else:
+    # Main application UI (only shown when logged in)
+    st.title("Generador de Actividades de Aprendizaje")
     
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
-        "messages": [
-            {"role": "system", "content": "Eres un asistente especializado en educación que genera actividades para reforzar conceptos."},
-            {"role": "user", "content": f"Genera 3 actividades para reforzar el concepto de '{concepto}' en la asignatura de {asignatura} para estudiantes de {grado} grado. Las actividades deben ser variadas, interactivas y adecuadas para el nivel educativo."}
-        ],
-        "max_tokens": 2512,
-        "temperature": 0.7,
-        "top_p": 0.7,
-        "top_k": 50,
-        "repetition_penalty": 1,
-        "stop": ["\n"]
-    }
-    
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
-    else:
-        return f"Error al generar actividades: {response.status_code}"
+    st.sidebar.button("Cerrar Sesión", on_click=logout)
 
-# Generar y mostrar actividades cuando se presiona el botón
-if st.button("Generar actividades"):
-    with st.form("actividades_form"):
-        concepto = st.text_input("Concepto a reforzar:")
-        asignatura = st.text_input("Asignatura:")
-        grado = st.text_input("Grado:")
-        submit_button = st.form_submit_button("Generar Actividades")
+    if st.session_state.current_user == 'admin':
+        st.sidebar.title("Panel de Administrador")
+        with st.sidebar.expander("Agregar Nuevo Usuario"):
+            new_username = st.text_input("Nuevo Usuario")
+            new_password = st.text_input("Nueva Contraseña", type="password")
+            if st.button("Agregar Usuario"):
+                if add_user(new_username, new_password):
+                    st.success(f"Usuario {new_username} agregado exitosamente")
+                else:
+                    st.error("El usuario ya existe")
 
-        if submit_button:
-            if concepto and asignatura and grado:
-                with st.spinner("Generando actividades..."):
-                    actividades = generar_actividades(concepto, asignatura, grado)
-                    st.subheader("Actividades Generadas:")
-                    st.write(actividades)
-            else:
-                st.warning("Por favor, completa todos los campos antes de generar actividades.")
+    # Función para llamar a la API
+    def llamar_api(prompt):
+        url = "https://api.together.xyz/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {st.secrets['API_KEY']}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 2512,
+            "temperature": 0.7,
+            "top_p": 0.7,
+            "top_k": 50,
+            "repetition_penalty": 1,
+            "stop": ["<|eot_id|>"]
+        }
+        
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            return response.json()['choices'][0]['message']['content']
+        else:
+            return f"Error: {response.status_code}, {response.text}"
 
-# Información adicional
-st.sidebar.header("Acerca de")
-st.sidebar.info(
-    "Esta aplicación genera actividades educativas personalizadas "
-    "para ayudar a reforzar conceptos específicos en diferentes asignaturas y grados."
-)
+    # Formulario para ingresar los datos
+    with st.form("datos_actividad"):
+        concepto = st.text_input("Concepto a reforzar")
+        asignatura = st.text_input("Asignatura")
+        grado = st.text_input("Grado o nivel educativo")
+        
+        submitted = st.form_submit_button("Generar Actividad")
+
+    # Generación de la actividad
+    if submitted:
+        if concepto and asignatura and grado:
+            with st.spinner("Generando actividad..."):
+                prompt = f"""
+                Genera una actividad educativa para reforzar el siguiente concepto:
+                
+                Concepto: {concepto}
+                Asignatura: {asignatura}
+                Grado o nivel: {grado}
+                
+                La actividad debe ser interactiva, adecuada para el nivel educativo especificado, y diseñada para asegurar la correcta fijación del concepto. 
+                Incluye una breve descripción de la actividad, los objetivos de aprendizaje, los materiales necesarios (si los hay), y los pasos detallados para realizarla.
+                """
+                
+                resultado = llamar_api(prompt)
+                st.subheader("Actividad Generada")
+                st.write(resultado)
+        else:
+            st.warning("Por favor, completa todos los campos antes de generar la actividad.")
+
+    # Instrucciones de uso
+    st.sidebar.header("Instrucciones")
+    st.sidebar.write("""
+    1. Ingresa el concepto que deseas reforzar.
+    2. Especifica la asignatura a la que pertenece el concepto.
+    3. Indica el grado o nivel educativo de los estudiantes.
+    4. Haz clic en "Generar Actividad" para obtener una actividad personalizada.
+    """)
+
+    # Nota sobre la API
+    st.sidebar.info("Esta aplicación utiliza la API de Together.xyz para generar actividades educativas personalizadas.")
