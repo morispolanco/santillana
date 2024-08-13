@@ -46,10 +46,12 @@ if not st.session_state.logged_in:
     if st.button("Iniciar Sesión"):
         if login(username, password):
             st.success("Inicio de sesión exitoso!")
-            st.experimental_rerun()
         else:
             st.error("Usuario o contraseña incorrectos")
 else:
+    # Main application UI (only shown when logged in)
+    st.title("Generador de Actividades de Aprendizaje")
+    
     st.sidebar.button("Cerrar Sesión", on_click=logout)
 
     if st.session_state.current_user == 'admin':
@@ -63,9 +65,6 @@ else:
                 else:
                     st.error("El usuario ya existe")
 
-    # Main application UI (only shown when logged in)
-    st.title("Generador de Actividades de Aprendizaje")
-    
     # Formulario para ingresar los datos
     with st.form("input_form"):
         concepto = st.text_input("Concepto a reforzar:")
